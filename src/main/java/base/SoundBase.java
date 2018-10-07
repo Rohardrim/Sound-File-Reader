@@ -75,33 +75,34 @@ public class SoundBase {
         JFileChooser jf = new JFileChooser();
         File f = null;
 
-        if(jf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
+        if(jf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 
             f = jf.getSelectedFile();
+
+            String name, path;
+
+            name = f.getName();
+            path = f.getAbsolutePath();
+
+            System.out.println(name + " " + path);
+
+            //System.out.println(getTableSize());
+
+            try {
+
+                PreparedStatement ps = con.prepareStatement("insert into soundBase values(NULL, ?, ?)");
+                ps.setString(1, name);
+                ps.setString(2, path);
+                ps.execute();
+
+            } catch (SQLException e) {
+                System.out.println("Can not insert sound: " + e.getMessage());
+                return false;
+
+            }
+
         }
-
-        String name, path;
-
-        name = f.getName();
-        path = f.getAbsolutePath();
-
-        System.out.println(name +" "+path);
-
-        //System.out.println(getTableSize());
-
-        try {
-
-            PreparedStatement ps = con.prepareStatement("insert into soundBase values(NULL, ?, ?)");
-            ps.setString(1, name);
-            ps.setString(2, path);
-            ps.execute();
-
-        } catch (SQLException e) {
-            System.out.println("Can not insert sound: "+e.getMessage());
-            return false;
-
-        }
-        return true;
+            return true;
     }
     //-----------------------------------------------------------------------------
 
@@ -121,7 +122,7 @@ public class SoundBase {
                 id = rs.getInt("idsound");
                 name = rs.getString("soundName");
                 path = rs.getString("soundPath");
-                l.add(new additionalClass(name,path));
+                l.add(new additionalClass(id,name,path));
             }
 
         } catch (SQLException e) {
@@ -130,6 +131,22 @@ public class SoundBase {
 
         return l;
 
+    }
+
+    public String perNextSong(int id){
+
+        String perPath = "";
+
+
+            try {
+                ResultSet rs = stat.executeQuery("select soundPath from soundBase where idsound = " + id);
+
+                perPath = rs.getString("soundPath");
+
+            } catch (SQLException e) {
+                System.out.println(e.getMessage() + "wyjatek metody perviousSong");
+            }
+        return perPath;
     }
 }
 
