@@ -18,7 +18,7 @@ public class App
 
         JFrame f = new JFrame();
         Player p = new Player();
-        f.setSize(690,500);
+        f.setSize(950,500);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.setVisible(true);
         f.add(p);

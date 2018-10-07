@@ -16,12 +16,11 @@ import java.util.LinkedList;
 
 public class Player extends JPanel implements ActionListener{
 
-    private String[] f2; //to posluzy nam jako plylista!!!!
     private boolean isplay = true;
+    private File f;
     private Clip c;
-    private static String path;
-    private String getPath = "";
-    private JButton frameStart, frameStop, frameLoop, framesetSoundTable, frameRefreshTable, frameGetPath;
+    private static String path, songName;
+    private JButton frameStart, frameStop, frameLoop, framesetSoundTable, frameRefreshTable, frameGetPath,framePervious, frameNext;
     private JMenuBar jmb;
     private JMenu jmOpen, jmStart, jmStop, jmLoop;
     private JMenuItem open, start, stop, loop;
@@ -31,6 +30,7 @@ public class Player extends JPanel implements ActionListener{
     private JTable table;
     private DefaultTableModel model;
     private boolean reset = false;
+    private int setRow;
     SoundBase sb;
 
     public Player(){
@@ -72,15 +72,27 @@ public class Player extends JPanel implements ActionListener{
         frameGetPath.setBounds(60,290,100,20);
         frameGetPath.addActionListener(this);
         add(frameGetPath);
+        //-----------------------------------------------------------
+
+        framePervious = new JButton("Pervious");
+        framePervious.setBounds(10,250,90,20);
+        framePervious.addActionListener(this);
+        add(framePervious);
+        //-----------------------------------------------------------
+
+        frameNext = new JButton("Next");
+        frameNext.setBounds(110,250,90,20);
+        frameNext.addActionListener(this);
+        add(frameNext);
 
         //-----------------------------------------------------------
-//        soundPath = new JLabel("");
-//        soundPath.setBounds(20, 100,300,20);                      wykomentowana sekcja
-//        add(soundPath);
+        soundPath = new JLabel("");
+        soundPath.setBounds(20, 100,300,20);
+        add(soundPath);
 
         //-----------------------------------------------------------
         jmb = new JMenuBar();
-        jmb.setBounds(0,0,690,30);
+        jmb.setBounds(0,0,940,30);
         add(jmb);
         //-----------------------------------------------------------
 
@@ -117,16 +129,16 @@ public class Player extends JPanel implements ActionListener{
 
         //-----------------------------------------------------------
         tabbedPane = new JTabbedPane();
-        tabbedPane.setBounds(210,30,460,420);
+        tabbedPane.setBounds(210,30,700,420);
 
         jp1 = new JPanel();
-        jp1.setLayout(new FlowLayout());
+        jp1.setLayout(new GridLayout());
 
         tabbedPane.addTab("PlayList",jp1);
 
         add(tabbedPane);
 
-        String[] columns = {"SongName", "SongPath"};
+        String[] columns = {"IdSond", "SongName", "SongPath"};
 
         model = new DefaultTableModel(columns, 0);
 
@@ -157,16 +169,20 @@ public class Player extends JPanel implements ActionListener{
 
         if (source == frameRefreshTable) {
             refreshTable();
-            refresh();
+            fillTable();
         }
 
-        if (source == frameGetPath){
+        if (source == frameGetPath)
             playListGetPath();
-        }
+
+        if (source == framePervious)
+            pervoiusSong(-1);
+
+        if (source == frameNext)
+            pervoiusSong(1);
 
         if(source == open) {
             path = getPath();
-            soundPath.setText(path);
         }
 
         if(source == start)
@@ -184,17 +200,15 @@ public class Player extends JPanel implements ActionListener{
 
         try {
 
-            File f = new File(song);
+            /*File*/ f = new File(song);
             isplay = true;
             c = AudioSystem.getClip();
             c.open(AudioSystem.getAudioInputStream(f));
             c.start();
-            getPath =  f.getAbsolutePath();
-            soundPath.setText(getPath);
             Thread.sleep(c.getMicrosecondLength()/900);
 
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+
         }
     }
 
@@ -214,7 +228,7 @@ public class Player extends JPanel implements ActionListener{
                         do {
                             try {
 
-                                File f = new File(song);
+                                /*File*/ f = new File(song);
                                 c = AudioSystem.getClip();
                                 c.open(AudioSystem.getAudioInputStream(f));
                                 c.start();
@@ -244,8 +258,10 @@ public class Player extends JPanel implements ActionListener{
 
         if(jf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
 
-            File f = jf.getSelectedFile();
+            /*File*/ f = jf.getSelectedFile();
             filePath = f.getAbsolutePath();
+            songName = f.getName();
+            soundPath.setText(songName);
         }
 
         return filePath;
@@ -256,12 +272,12 @@ public class Player extends JPanel implements ActionListener{
         sb.InsertSound();
     }
 
-    public void refresh(){
+    public void fillTable(){
         LinkedList<additionalClass> l = sb.SelectSounds();
 
         for(additionalClass adc : l){
 
-            model.addRow(new Object[] {adc.getName(),adc.getPath()});
+            model.addRow(new Object[] {adc.getId(),adc.getName(),adc.getPath()});
 
         }
 
@@ -283,13 +299,37 @@ public class Player extends JPanel implements ActionListener{
 
     public void  playListGetPath(){
 
-        int a = table.getSelectedRow();
+        setRow = table.getSelectedRow();
 
-        Object a2 = table.getValueAt(a,1);
+        Object a2 = table.getValueAt(setRow,2);
 
         String pat = (String) a2;
 
         path = pat;
+
+        Object name = table.getValueAt(setRow,1);
+        soundPath.setText((String)name);
+
+    }
+
+    public void pervoiusSong(int id){
+
+        if (setRow+id>=0 && setRow+id<table.getRowCount()) {
+
+            Object iden = table.getValueAt(setRow + id, 0);
+
+            path = sb.perNextSong((int) iden);
+
+            Object song = table.getValueAt(setRow + id, 1);
+
+            soundPath.setText((String) song);
+
+            shortPlay(path);
+
+            setRow+=id;
+
+        }
+
     }
 
 
